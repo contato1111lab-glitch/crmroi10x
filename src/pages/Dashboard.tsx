@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { DollarSign, TrendingUp, TrendingDown, Activity, BarChart3, Radio } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { useOperacao } from '../context/OperacaoContext';
 
 export default function Dashboard() {
+  const { operacao } = useOperacao();
   const [loading, setLoading] = useState(true);
   
   // Totals
@@ -20,7 +22,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [operacao]);
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -39,12 +41,16 @@ export default function Dashboard() {
         .from('campanhas_diarias')
         .select('*')
         .eq('data_registro', today)
-        .eq('status', 'Ativa');
+        .eq('status', 'Ativa')
+        .eq('operacao', operacao === 'NUTRA' ? 'Nutra' : 'Info');
         
       if (campanhasData) {
         setCampanhasAtivasCount(campanhasData.length);
         const orcamentoTotal = campanhasData.reduce((acc, curr) => acc + Number(curr.orcamento), 0);
         setOrcamentoAtivoHoje(Math.round(orcamentoTotal * 100) / 100);
+      } else {
+        setCampanhasAtivasCount(0);
+        setOrcamentoAtivoHoje(0);
       }
 
       // 2. Fetch Leads joined with Produtos
@@ -53,17 +59,20 @@ export default function Dashboard() {
         .select(`
           fase_funil,
           data_entrada,
-          produtos (
+          produtos!inner (
+            tipo,
             faturamento_bruto_operacao
           )
-        `);
+        `)
+        .eq('produtos.tipo', operacao === 'NUTRA' ? 'Nutra' : 'Info');
 
       if (leadsError) throw leadsError;
 
       // 3. Fetch Fechamento Diario (Gastos em tráfego)
       const { data: fechamentoData, error: fechamentoError } = await supabase
         .from('fechamento_diario')
-        .select('*');
+        .select('*')
+        .eq('operacao', operacao === 'NUTRA' ? 'Nutra' : 'Info');
 
       if (fechamentoError) throw fechamentoError;
 

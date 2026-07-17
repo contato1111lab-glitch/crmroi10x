@@ -12,6 +12,7 @@ import Trafego from './pages/Trafego';
 import Logs from './pages/Logs';
 import Infraestrutura from './pages/Infraestrutura';
 import Login from './pages/Login';
+import Toaster from './components/Toaster';
 import { OperacaoProvider } from './context/OperacaoContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Loader2 } from 'lucide-react';
@@ -39,6 +40,7 @@ export default function App() {
     <AuthProvider>
       <OperacaoProvider>
         <BrowserRouter>
+          <Toaster />
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>

@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Lock } from 'lucide-react';
 import { toast } from '../lib/toast';
+import { useOperacao } from '../context/OperacaoContext';
 
 export default function FechamentoModal() {
+  const { operacao } = useOperacao();
+  const dbOperacao = operacao === 'NUTRA' ? 'Nutra' : 'Info';
   const [isOpen, setIsOpen] = useState(false);
   const [gasto, setGasto] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -13,7 +16,7 @@ export default function FechamentoModal() {
 
   useEffect(() => {
     checkFechamento();
-  }, []);
+  }, [operacao]);
 
   const checkFechamento = async () => {
     const date = new Date();
@@ -31,6 +34,7 @@ export default function FechamentoModal() {
         .from('fechamento_diario')
         .select('*')
         .eq('data_referencia', yesterdayISO)
+        .eq('operacao', dbOperacao)
         .limit(1);
 
       if (error) throw error;
@@ -40,7 +44,8 @@ export default function FechamentoModal() {
         const { data: campanhas, error: campError } = await supabase
           .from('campanhas_diarias')
           .select('orcamento')
-          .eq('data_registro', yesterdayISO);
+          .eq('data_registro', yesterdayISO)
+          .eq('operacao', dbOperacao);
           
         if (campError) throw campError;
 
@@ -48,7 +53,10 @@ export default function FechamentoModal() {
           const total = campanhas.reduce((acc, curr) => acc + Number(curr.orcamento), 0);
           setOrcamentoPlanejado(total);
         }
+
         setIsOpen(true);
+      } else {
+        setIsOpen(false);
       }
     } catch (error: any) {
       console.error('Erro ao verificar fechamento:', error.message);
@@ -60,12 +68,12 @@ export default function FechamentoModal() {
     if (!gasto) return toast.error('Informe o gasto real total.');
     
     setSubmitting(true);
-
     try {
       const { data: existing, error: fetchError } = await supabase
         .from('fechamento_diario')
         .select('id')
         .eq('data_referencia', ontemDate)
+        .eq('operacao', dbOperacao)
         .limit(1);
 
       if (fetchError) throw fetchError;
@@ -79,7 +87,7 @@ export default function FechamentoModal() {
       } else {
         const { error } = await supabase
           .from('fechamento_diario')
-          .insert([{ data_referencia: ontemDate, gasto_trafego_total: Number(gasto), status_fechamento: 'Fechado' }]);
+          .insert([{ data_referencia: ontemDate, gasto_trafego_total: Number(gasto), status_fechamento: 'Fechado', operacao: dbOperacao }]);
         if (error) throw error;
       }
 

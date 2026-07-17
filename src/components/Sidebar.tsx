@@ -48,7 +48,7 @@ export default function Sidebar() {
           <div className="flex items-center gap-2 overflow-hidden">
             <User className="w-4 h-4 text-gray-500 shrink-0" />
             <span className="text-xs text-gray-400 font-medium truncate">
-              {user?.email?.split('@')[0]}
+              {user?.nome}
             </span>
           </div>
           <button

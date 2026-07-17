@@ -49,7 +49,7 @@ export default function Logs() {
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
             <ScrollText className="w-8 h-8 text-red-500" />
-            Sistema X9 - Logs de Auditoria
+            Logs de Auditoria
           </h1>
           <p className="text-gray-400 mt-2">Monitoramento contínuo. Todas as ações do banco de dados são rastreadas.</p>
         </div>

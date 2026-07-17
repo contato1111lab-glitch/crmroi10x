@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Activity, Plus, Play, Pause, BarChart2, Calendar as CalendarIcon, Server, ChevronLeft, ChevronRight, Layers, X, Check } from 'lucide-react';
 import { toast } from '../lib/toast';
+import { useOperacao } from '../context/OperacaoContext';
 
 interface Campanha {
   id: string;
@@ -22,6 +23,7 @@ interface BM {
 }
 
 export default function Trafego() {
+  const { operacao } = useOperacao();
   const [campanhas, setCampanhas] = useState<Campanha[]>([]);
   const [bms, setBms] = useState<BM[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,7 +59,7 @@ export default function Trafego() {
 
   useEffect(() => {
     fetchCampanhas();
-  }, [dataFiltro]);
+  }, [dataFiltro, operacao]);
 
   const fetchBms = async () => {
     try {
@@ -76,6 +78,7 @@ export default function Trafego() {
         .from('campanhas_diarias')
         .select('*, bm:infraestrutura_meta(nome_bm)')
         .eq('data_registro', dataFiltro)
+        .eq('operacao', operacao === 'NUTRA' ? 'Nutra' : 'Info')
         .order('hora_inicio', { ascending: false });
       
       if (error) throw error;
@@ -111,7 +114,8 @@ export default function Trafego() {
           tipo_orcamento: tipoOrcamento,
           qtd_criativos: qtd,
           status: 'Ativa',
-          id_bm: idBm
+          id_bm: idBm,
+          operacao: operacao === 'NUTRA' ? 'Nutra' : 'Info'
         }
       ]).select('id').single();
 

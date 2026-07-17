@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Users, Phone, Calendar, X, Zap, Check, UserMinus } from 'lucide-react';
 import { toast } from '../lib/toast';
+import { useOperacao } from '../context/OperacaoContext';
 
 interface Lead {
   id: string;
@@ -21,6 +22,7 @@ interface Produto {
 const FASES_FUNIL = ['Agendado', 'Pagou', 'Blacklist / Sumiu'];
 
 export default function Crm() {
+  const { operacao } = useOperacao();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,29 +50,35 @@ export default function Crm() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [operacao]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Buscar Leads
+      // Buscar Leads (filtrando por operação via join com produtos)
       const { data: leadsData, error: leadsError } = await supabase
         .from('leads_crm')
-        .select('*')
+        .select(`
+          *,
+          produtos!inner(tipo)
+        `)
+        .eq('produtos.tipo', operacao === 'NUTRA' ? 'Nutra' : 'Info')
         .order('data_entrada', { ascending: false });
       
       if (leadsError) throw leadsError;
       if (leadsData) setLeads(leadsData);
 
-      // Buscar Produtos
+      // Buscar Produtos (filtrando por operação)
       const { data: produtosData, error: produtosError } = await supabase
         .from('produtos')
-        .select('id, nome_produto');
+        .select('id, nome_produto')
+        .eq('tipo', operacao === 'NUTRA' ? 'Nutra' : 'Info');
         
       if (produtosError) throw produtosError;
       if (produtosData) {
         setProdutos(produtosData);
-        if (produtosData.length > 0 && !idProduto) setIdProduto(produtosData[0].id);
+        if (produtosData.length > 0) setIdProduto(produtosData[0].id);
+        else setIdProduto('');
       }
     } catch (error: any) {
       toast.error('Erro ao buscar dados do CRM: ' + error.message);

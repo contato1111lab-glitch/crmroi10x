@@ -1,12 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Shield, Lock, Loader2, Key, User, Hash } from 'lucide-react';
 import { toast } from '../lib/toast';
+import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
 
   // Form states
   const [username, setUsername] = useState('');
