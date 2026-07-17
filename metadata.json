@@ -1,0 +1,8 @@
+{
+  "name": "Modern Dark Premium CRM",
+  "description": "Sistema de CRM para Cash on Delivery e Infoprodutos",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
